@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Liga Universitaria UNSA — Resultados y Ligas</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#fff;--accent:#0b6cf0;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:var(--bg);color:#0f172a}
+    header{background:linear-gradient(90deg,#0b6cf0,#2aa6ff);color:#fff;padding:18px 20px}
+    .container{max-width:1150px;margin:20px auto;padding:0 16px}
+    h1{margin:0;font-size:20px}
+    .card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(12,34,64,0.06);}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .col-4{grid-column:span 4}
+    .col-8{grid-column:span 8}
+    @media(max-width:900px){.col-4,.col-8{grid-column:span 12}}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    select,input[type=text],input[type=date],input[type=time]{width:100%;padding:8px;border:1px solid #e6edf7;border-radius:8px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px solid #eef2f7;text-align:left;font-size:14px}
+    th{background:#fafcff;font-weight:600;color:#334155}
+    .btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,108,240,0.12)}
+    .muted{color:var(--muted);font-size:13px}
+    .empty{padding:30px;text-align:center;color:var(--muted)}
+    .form-row{display:flex;gap:8px}
+    .form-row>div{flex:1}
+    .small{font-size:13px;color:var(--muted)}
+    footer{margin:30px 0 60px;text-align:center;color:var(--muted)}
+    .score{font-weight:700}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Liga Universitaria UNSA — Resultados (Liga 1 • Liga 2 • Liga 3)</h1>
+      <div class="small">Fútbol | Futsal | Básquet | Vóley — Varones y Damas — 3 Ligas · 16 equipos cada una</div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="card" aria-labelledby="filtros">
+      <h2 id="filtros" style="margin-top:0">Filtros</h2>
+      <div class="grid">
+        <div class="col-4">
+          <label for="league">Liga</label>
+          <select id="league">
+            <option value="">Todas</option>
+            <option value="Liga 1">Liga 1</option>
+            <option value="Liga 2">Liga 2</option>
+            <option value="Liga 3">Liga 3</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label for="sport">Deporte</label>
+          <select id="sport">
+            <option value="">Todos</option>
+            <option>Fútbol</option>
+            <option>Futsal</option>
+            <option>Básquet</option>
+            <option>Vóley</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label for="category">Categoría</label>
+          <select id="category">
+            <option value="">Todas</option>
+            <option>Varones</option>
+            <option>Damas</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+        <input id="search" type="text" placeholder="Buscar por equipo, sede o jornada..." style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6edf7" />
+        <button class="btn" id="clear">Limpiar</button>
+        <div style="margin-left:auto" class="muted">Partidos totales: <span id="count">0</span></div>
+      </div>
+    </section>
+
+    <section style="height:14px"></section>
+
+    <section class="grid">
+      <div class="col-8">
+        <div class="card" id="resultsCard">
+          <h3 style="margin-top:0">Resultados</h3>
+          <div id="tableWrap"></div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <h3 style="margin-top:0">Tabla / Clasificación (por Liga, Deporte y Categoría)</h3>
+          <div id="standingsWrap" class="small">Selecciona una liga, deporte y categoría para ver la tabla.</div>
+        </div>
+      </div>
+
+      <div class="col-4">
+        <div class="card">
+          <h3 style="margin-top:0">Agregar / Editar resultado</h3>
+          <form id="matchForm">
+            <input type="hidden" id="matchId" />
+            <label>Liga</label>
+            <select id="f_league" required>
+              <option> Liga 1</option>
+              <option> Liga 2</option>
+              <option> Liga 3</option>
+            </select>
+
+            <label style="margin-top:8px">Deporte</label>
+            <select id="f_sport" required>
+              <option>Fútbol</option>
+              <option>Futsal</option>
+              <option>Básquet</option>
+              <option>Vóley</option>
+            </select>
+
+            <label style="margin-top:8px">Categoría</label>
+            <select id="f_category">
+              <option>Varones</option>
+              <option>Damas</option>
+            </select>
+
+            <div class="form-row" style="margin-top:8px">
+              <div>
+                <label>Fecha</label>
+                <input type="date" id="f_date" required />
+              </div>
+              <div>
+                <label>Hora</label>
+                <input type="time" id="f_time" />
+              </div>
+            </div>
+
+            <label style="margin-top:8px">Jornada</label>
+            <input id="f_round" type="text" placeholder="ej: Jornada 3" />
+
+            <label style="margin-top:8px">Local</label>
+            <select id="f_home" required></select>
+            <label style="margin-top:8px">Visitante</label>
+            <select id="f_away" required></select>
+
+            <div class="form-row" style="margin-top:8px;align-items:center">
+              <div>
+                <label>Goles / Pts Local</label>
+                <input id="f_home_score" type="number" placeholder="ej: 2" />
+              </div>
+              <div>
+                <label>Goles / Pts Visitante</label>
+                <input id="f_away_score" type="number" placeholder="ej: 1" />
+              </div>
+            </div>
+
+            <label style="margin-top:8px">Sede / Observaciones</label>
+            <input id="f_location" type="text" placeholder="Campo, coliseo, nota..." />
+
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn" type="submit">Guardar resultado</button>
+              <button class="btn ghost" id="resetForm" type="button">Nuevo</button>
+            </div>
+            <div class="small" style="margin-top:8px">Los resultados se guardan en el navegador (localStorage). Puedes exportarlos o importarlos para compartir.</div>
+          </form>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <h4 style="margin:0 0 8px 0">Acciones</h4>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn ghost" id="exportBtn" title="Exportar JSON">Exportar JSON</button>
+            <button class="btn ghost" id="importBtn">Importar JSON</button>
+            <button class="btn ghost" id="clearAll">Borrar todo</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer>
+      Página de ejemplo — Liga Universitaria UNSA · 3 ligas · 16 equipos por liga · diseñado para mostrar y administrar resultados locales.
+    </footer>
+  </main>
+
+  <script>
+    // --- Configuración de equipos: 3 ligas x 16 equipos (nombres ejemplo: carreras/profesiones) ---
+    const TEAMS_BY_LEAGUE = {
+      'Liga 1': [
+        'Medicina','Derecho','Ingeniería Civil','Arquitectura','Economía','Contabilidad','Comunicación','Psicología',
+        'Ingeniería Mecánica','Odontología','Biología','Química','Física','Matemáticas','Farmacia','Enfermería'
+      ],
+      'Liga 2': [
+        'Sistemas','Industrial','Electrónica','Agronomía','Estadística','Turismo','Educación','Arte',
+        'Geología','Veterinaria','Química Industrial','Nutrición','Fonoaudiología','Historia','Filosofía','Sociología'
+      ],
+      'Liga 3': [
+        'Agrícola','Minería','Ambiental','Telecomunicaciones','Diseño','Publicidad','Relaciones Internacionales','Trabajo Social',
+        'Gestión Pública','Negocios','Logística','Psicometría','Antropología','Idiomas','Derecho Penal','Derecho Civil'
+      ]
+    };
+
+    // Ejemplos iniciales de partidos (vacío por defecto)
+    const SAMPLE = [];
+    const STORAGE_KEY = 'unsa_liga_v3_resultados';
+
+    // estado
+    let matches = loadMatches();
+
+    // elementos
+    const leagueEl = document.getElementById('league');
+    const sportEl = document.getElementById('sport');
+    const categoryEl = document.getElementById('category');
+    const searchEl = document.getElementById('search');
+    const tableWrap = document.getElementById('tableWrap');
+    const countEl = document.getElementById('count');
+    const clearBtn = document.getElementById('clear');
+
+    const form = document.getElementById('matchForm');
+    const idEl = document.getElementById('matchId');
+    const f_league = document.getElementById('f_league');
+    const f_sport = document.getElementById('f_sport');
+    const f_category = document.getElementById('f_category');
+    const f_date = document.getElementById('f_date');
+    const f_time = document.getElementById('f_time');
+    const f_round = document.getElementById('f_round');
+    const f_home = document.getElementById('f_home');
+    const f_away = document.getElementById('f_away');
+    const f_home_score = document.getElementById('f_home_score');
+    const f_away_score = document.getElementById('f_away_score');
+    const f_location = document.getElementById('f_location');
+    const resetFormBtn = document.getElementById('resetForm');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const clearAllBtn = document.getElementById('clearAll');
+
+    const standingsWrap = document.getElementById('standingsWrap');
+
+    // Inicializar select de equipos con base en la liga seleccionada en el formulario
+    function populateTeamSelects(league){
+      const teams = TEAMS_BY_LEAGUE[league] || [];
+      // limpiar
+      f_home.innerHTML = '';
+      f_away.innerHTML = '';
+      teams.forEach(t=>{
+        const o1 = document.createElement('option'); o1.value = t; o1.textContent = t; f_home.appendChild(o1);
+        const o2 = document.createElement('option'); o2.value = t; o2.textContent = t; f_away.appendChild(o2);
+      });
+    }
+
+    // eventos
+    [leagueEl,sportEl,categoryEl,searchEl].forEach(el=>el.addEventListener('input',render));
+    clearBtn.addEventListener('click',()=>{leagueEl.value='';sportEl.value='';categoryEl.value='';searchEl.value='';render();});
+
+    f_league.addEventListener('change',()=>populateTeamSelects(f_league.value.trim()));
+
+    form.addEventListener('submit',e=>{
+      e.preventDefault();
+      const id = idEl.value ? Number(idEl.value) : Date.now();
+      if(f_home.value === f_away.value){ alert('El local y el visitante deben ser equipos diferentes.'); return; }
+      const entry = {
+        id,
+        league: f_league.value.trim(),
+        sport: f_sport.value,
+        category: f_category.value,
+        date: f_date.value,
+        time: f_time.value||'',
+        round: f_round.value.trim(),
+        home: f_home.value,
+        away: f_away.value,
+        home_score: f_home_score.value!==''?Number(f_home_score.value):null,
+        away_score: f_away_score.value!==''?Number(f_away_score.value):null,
+        location: f_location.value.trim()
+      };
+      const idx = matches.findIndex(m=>m.id===id);
+      if(idx>-1) matches[idx]=entry; else matches.unshift(entry);
+      saveMatches(); resetForm(); render();
+    });
+
+    resetFormBtn.addEventListener('click',resetForm);
+
+    exportBtn.addEventListener('click',()=>{
+      const dataStr = JSON.stringify(matches, null, 2);
+      const blob = new Blob([dataStr],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'unsa_liga_resultados_v3.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener('click',()=>{
+      const input = document.createElement('input'); input.type='file'; input.accept='application/json';
+      input.onchange = e=>{
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ev=>{
+          try{ const imported = JSON.parse(ev.target.result); if(Array.isArray(imported)){ matches = imported; saveMatches(); render(); alert('Importación completada'); } else alert('Archivo no válido'); }
+          catch(err){alert('Error leyendo JSON: '+err)}
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    });
+
+    clearAllBtn.addEventListener('click',()=>{
+      if(confirm('¿Borrar todos los resultados? Esta acción no se puede deshacer.')){ matches = []; saveMatches(); render(); }
+    });
+
+    // funciones
+    function loadMatches(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(raw) return JSON.parse(raw);
+      }catch(e){ console.error(e); }
+      return JSON.parse(JSON.stringify(SAMPLE));
+    }
+    function saveMatches(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(matches)); }
+    function resetForm(){ idEl.value=''; f_league.value='Liga 1'; f_sport.value='Fútbol'; f_category.value='Varones'; f_date.value=''; f_time.value=''; f_round.value=''; f_home_score.value=''; f_away_score.value=''; f_location.value=''; populateTeamSelects(f_league.value.trim()); }
+
+    function render(){
+      const league = leagueEl.value;
+      const sport = sportEl.value;
+      const category = categoryEl.value;
+      const q = searchEl.value.trim().toLowerCase();
+
+      let filtered = matches.filter(m=>{
+        if(league && m.league !== league) return false;
+        if(sport && m.sport !== sport) return false;
+        if(category && m.category !== category) return false;
+        if(q){ const hay = [m.home,m.away,m.location,m.league,m.sport,m.round,(m.date||'')].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+        return true;
+      });
+
+      countEl.textContent = filtered.length;
+
+      if(filtered.length===0){ tableWrap.innerHTML = '<div class="empty">No hay resultados que coincidan con los filtros.</div>'; standingsWrap.textContent = 'Selecciona una liga, deporte y categoría para ver la tabla.'; return; }
+
+      const rows = filtered.map(m=>{
+        const score = (m.home_score==null || m.away_score==null) ? '<span class="small muted">pendiente</span>' : `<span class="score">${escapeHtml(m.home_score)} - ${escapeHtml(m.away_score)}</span>`;
+        return `
+          <tr data-id="${m.id}">
+            <td>${escapeHtml(m.league)}</td>
+            <td>${escapeHtml(m.date)} ${m.time?'<br><span class="small">'+escapeHtml(m.time)+'</span>':''}</td>
+            <td>${escapeHtml(m.sport)}<br><span class="small">${escapeHtml(m.category)} • ${escapeHtml(m.round||'')}</span></td>
+            <td>${escapeHtml(m.home)} <strong>vs</strong> ${escapeHtml(m.away)}</td>
+            <td>${score}</td>
+            <td>${escapeHtml(m.location||'')}</td>
+            <td style="width:140px">
+              <button class="btn ghost" data-action="edit">Editar</button>
+              <button class="btn" data-action="delete">Eliminar</button>
+            </td>
+          </tr>
+        `;
+      }).join('\n');
+
+      tableWrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Liga</th>
+              <th>Fecha / Hora</th>
+              <th>Deporte / Jornada</th>
+              <th>Encuentro</th>
+              <th>Resultado</th>
+              <th>Sede</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+
+      // attach button events
+      tableWrap.querySelectorAll('button').forEach(btn=>{
+        const tr = btn.closest('tr');
+        const id = Number(tr.getAttribute('data-id'));
+        if(btn.dataset.action==='edit') btn.addEventListener('click',()=>loadIntoForm(id));
+        if(btn.dataset.action==='delete') btn.addEventListener('click',()=>{ if(confirm('Eliminar resultado?')){ matches = matches.filter(m=>m.id!==id); saveMatches(); render(); } });
+      });
+
+      // actualizar tabla de posiciones si se seleccionó liga+deporte+categoría
+      if(league && sport && category){ renderStandings(league,sport,category); } else { standingsWrap.textContent = 'Selecciona una liga, deporte y categoría para ver la tabla.'; }
+    }
+
+    function loadIntoForm(id){ const m = matches.find(x=>x.id===id); if(!m) return; idEl.value = m.id; f_league.value = m.league; populateTeamSelects(f_league.value.trim()); f_sport.value = m.sport; f_category.value = m.category; f_date.value = m.date; f_time.value = m.time||''; f_round.value = m.round||''; f_home.value = m.home; f_away.value = m.away; f_home_score.value = m.home_score!=null?m.home_score:''; f_away_score.value = m.away_score!=null?m.away_score:''; f_location.value = m.location||''; window.scrollTo({top:0,behavior:'smooth'}); }
+
+    function escapeHtml(s){ if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // --- Clasificación / tabla de posiciones ---
+    function renderStandings(league,sport,category){
+      const teams = TEAMS_BY_LEAGUE[league] || [];
+      // inicializar tabla
+      const table = {};
+      teams.forEach(t=> table[t] = {team:t, pts:0, pj:0, pg:0, pe:0, pp:0, gf:0, ga:0, gd:0});
+
+      // filtrar partidos jugados para esta combinacion
+      const played = matches.filter(m=> m.league===league && m.sport===sport && m.category===category && m.home_score!=null && m.away_score!=null );
+
+      played.forEach(m=>{
+        const a = table[m.home];
+        const b = table[m.away];
+        if(!a || !b) return; // partido entre equipos no listados (seguridad)
+        a.pj++; b.pj++;
+        a.gf += Number(m.home_score); a.ga += Number(m.away_score); a.gd = a.gf - a.ga;
+        b.gf += Number(m.away_score); b.ga += Number(m.home_score); b.gd = b.gf - b.ga;
+        if(m.home_score > m.away_score){ a.pg++; b.pp++; a.pts += 3; }
+        else if(m.home_score < m.away_score){ b.pg++; a.pp++; b.pts += 3; }
+        else { a.pe++; b.pe++; a.pts += 1; b.pts += 1; }
+      });
+
+      // convertir a array y ordenar
+      const arr = Object.values(table).sort((x,y)=> {
+        if(y.pts !== x.pts) return y.pts - x.pts;
+        if(y.gd !== x.gd) return y.gd - x.gd;
+        if(y.gf !== x.gf) return y.gf - x.gf;
+        return x.team.localeCompare(y.team);
+      });
+
+      // construir tabla HTML
+      const rows = arr.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r.team)}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td><td>${r.pts}</td></tr>`).join('\n');
+
+      standingsWrap.innerHTML = `
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // inicializar controles
+    // popular selects de formulario con Liga 1 por defecto
+    populateTeamSelects('Liga 1');
+    resetForm();
+    render();
+
+  </script>
+</body>
+</html>
